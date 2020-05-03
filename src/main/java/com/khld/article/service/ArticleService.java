@@ -24,8 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,12 +39,6 @@ public class ArticleService {
         this.articleRepository = articleRepository;
     }
 
-
-//    public Article save(Article article) {
-//        restTemplate.postForObject("http://", article);
-//        return articleRepository.save(article);
-//    }
-
     public Article save(Article article) {
         if (article.getId() == null) {
             article.setId(UUID.randomUUID().toString());
@@ -54,10 +46,8 @@ public class ArticleService {
         return articleRepository.save(article);
     }
 
-    public List<Article> getArticles() {
-        List<Article> articles = new ArrayList<>();
-        articleRepository.findAll().forEach(article -> articles.add(article));
-        return articles;
+    public Page<Article> getAll(Pageable pageable) {
+        return articleRepository.findAll(pageable);
     }
 
     public Optional<Article> getByLink(String link) {

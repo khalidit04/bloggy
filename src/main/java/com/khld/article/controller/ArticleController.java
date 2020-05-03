@@ -21,7 +21,7 @@ import com.khld.article.model.Article;
 import com.khld.article.model.User;
 import com.khld.article.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,7 +29,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -45,9 +44,9 @@ public class ArticleController {
                         @RequestParam(required = false, value = "page") Integer page,
                         @RequestParam(required = false, value = "size") Integer size) {
         if (q == null) {
-            List<Article> articles = articleService.getArticles();
+            Page<Article> articles = articleService.getAll(getPageable(page,size));
             System.out.println("restul" + articles);
-            model.addAttribute("articles", new PageImpl(articles, Pageable.unpaged(), 0L));
+            model.addAttribute("articles", articles);
         } else {
             model.addAttribute("articles", articleService.search(q, getPageable(page, size)));
         }
@@ -116,7 +115,7 @@ public class ArticleController {
         articleService.deleteById(id);
 
         model.addAttribute("message", "Article with id " + id + " deleted successfully!");
-        model.addAttribute("articles", new PageImpl(articleService.getArticles(), Pageable.unpaged(), 0L));
+        model.addAttribute("articles", articleService.getAll(getPageable(0,10)));
         return "article/index";
     }
 
