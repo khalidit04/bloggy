@@ -60,9 +60,20 @@ public class ArticleService {
 
     public void deleteById(String id) {
         articleRepository.deleteById(id);
+
+
+
+
+
+
+
+
+
+
+
     }
 
     public Page<Article> search(String q, Pageable pageable) {
-        return articleRepository.findByTitleContainingAndBodyContaining(q, q, pageable);
+        return articleRepository.findByTitleContainingOrBodyContaining(q, q, pageable);
     }
 }

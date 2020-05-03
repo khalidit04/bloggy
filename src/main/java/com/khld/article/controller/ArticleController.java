@@ -20,11 +20,14 @@ import com.khld.article.exception.NotFoundException;
 import com.khld.article.model.Article;
 import com.khld.article.model.User;
 import com.khld.article.service.ArticleService;
+import com.khld.article.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +41,17 @@ public class ArticleController {
     @Autowired
     private ArticleService articleService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping
-    public String index(Model model,
+    public String index(@AuthenticationPrincipal UserDetails userDetails,
+                        Model model,
                         @RequestParam(required = false, value = "q") String q,
                         @RequestParam(required = false, value = "page") Integer page,
                         @RequestParam(required = false, value = "size") Integer size) {
         if (q == null) {
             Page<Article> articles = articleService.getAll(getPageable(page,size));
-            System.out.println("restul" + articles);
             model.addAttribute("articles", articles);
         } else {
             Page<Article> results= articleService.search(q, getPageable(page, size));
@@ -66,7 +72,7 @@ public class ArticleController {
 
 
     @GetMapping("/edit/{id}")
-    public String editPost(@PathVariable String id, Model model) {
+    public String editPost(@AuthenticationPrincipal UserDetails userDetails,@PathVariable String id, Model model) {
         Optional<Article> article = articleService.getById(id);
         if (article.isPresent()) {
             model.addAttribute("article", article.get());
@@ -92,12 +98,9 @@ public class ArticleController {
 
 
     @PostMapping
-    public String savePost(Article article, Model model) {
+    public String savePost(@AuthenticationPrincipal UserDetails userDetails, Article article, Model model) {
         if (article.getId() == null || article.getId().length() == 0) {
-            User user = new User();
-            user.setId(article.getTitle());
-            user.setUsername("Khalid Moin");
-            user.setDescription("main user description");
+            User user = userService.getByUsername(userDetails.getUsername());
             article.setAuthor(user);
         } else {
             Optional<Article> optionalArticle = articleService.getById(article.getId());
@@ -112,7 +115,7 @@ public class ArticleController {
 
 
     @PostMapping("/delete/{id}")
-    public String deletePost(@PathVariable String id, Model model) {
+    public String deletePost(@AuthenticationPrincipal UserDetails userDetails,@PathVariable String id, Model model) {
         articleService.deleteById(id);
 
         model.addAttribute("message", "Article with id " + id + " deleted successfully!");
