@@ -16,9 +16,10 @@
  */
 package com.khld.article.controller;
 
+import com.khld.article.exception.NotFoundException;
 import com.khld.article.model.Article;
+import com.khld.article.model.User;
 import com.khld.article.service.ArticleService;
-import com.khld.article.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -26,11 +27,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/article")
@@ -38,97 +38,87 @@ public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
-    private final UserService userService;
-
-    public ArticleController(UserService userService) {
-//        this.articleService = articleService;
-        this.userService = userService;
-    }
 
     @GetMapping
     public String index(Model model,
-//                        @AuthenticationPrincipal UserDetails userDetails,
                         @RequestParam(required = false, value = "q") String q,
                         @RequestParam(required = false, value = "page") Integer page,
                         @RequestParam(required = false, value = "size") Integer size) {
-//        if (q == null) {
-        List<Article> articles = articleService.getArticles();
-        System.out.println("restul"+articles);
-        model.addAttribute("articles", new PageImpl(articles, Pageable.unpaged(), 0L));
-//        } else {
-//            model.addAttribute("articles", articleService.search(q, getPageable(page, size)));
-//        }
+        if (q == null) {
+            List<Article> articles = articleService.getArticles();
+            System.out.println("restul" + articles);
+            model.addAttribute("articles", new PageImpl(articles, Pageable.unpaged(), 0L));
+        } else {
+            model.addAttribute("articles", articleService.search(q, getPageable(page, size)));
+        }
 
         return "article/index";
     }
 
-//    @GetMapping("/show/{link}")
-//    public String getPost(@AuthenticationPrincipal UserDetails userDetails,
-//            @PathVariable String link, Model model) {
-//        Optional<Article> article = articleService.getByLink(link);
-//        if (article.isPresent()) {
-//            model.addAttribute("article", article.get());
-//        } else {
-//            throwNotFoundException(link);
-//        }
-//
-//        return "article/show";
-//    }
-//
-//    @GetMapping("/new")
-//    public String newPost() {
-//        return "article/create";
-//    }
-//
-//    @GetMapping("/edit/{id}")
-//    public String editPost(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id, Model model) {
-//        Optional<Article> article = articleService.getById(id);
-//        if (article.isPresent()) {
-//            model.addAttribute("article", article.get());
-//        } else {
-//            return throwNotFoundException(id);
-//        }
-//
-//        return "article/create";
-//    }
-//
-//    private String throwNotFoundException(@PathVariable String id) {
-//        throw new NotFoundException("Article Not Found for "+id);
-//    }
-//
-//    @PostMapping("/delete/{id}")
-//    public String deletePost(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id, Model model) {
-//        articleService.deleteById(id);
-//
-//        model.addAttribute("message", "Article with id " + id + " deleted successfully!");
-//        model.addAttribute("articles", articleService.getAll(PageRequest.of(0,
-//                10)));
-//
-//        return "article/index";
-//    }
-//
-//    @PostMapping
-//    public String savePost(@AuthenticationPrincipal UserDetails userDetails, Article article, Model model) {
-//        if (article.getId() == null || article.getId().length() == 0) {
-//            User user = userService.getByUsername(userDetails.getUsername());
-//            article.setAuthor(user);
-//        } else {
-//            Optional<Article> optionalArticle = articleService.getById(article.getId());
-//            if (optionalArticle.isPresent()) {
-//                article.setAuthor(optionalArticle.get().getAuthor());
-//            }
-//        }
-//        articleService.save(article);
-//
-//        return "redirect:/article/show/"+article.getLink();
-//    }
-//
-//    @GetMapping("/rest")
-//    @ResponseBody
-//    public Page<Article> articlesRest(@RequestParam(required = false, value = "page") Integer page,
-//                                      @RequestParam(required = false, value = "size") Integer size) {
-//        return articleService.getAll(getPageable(page, size));
-//    }
+    @GetMapping("/new")
+    public String newPost() {
+        return "article/create";
+    }
+
+    private String throwNotFoundException(@PathVariable String id) {
+        throw new NotFoundException("Article Not Found for " + id);
+    }
+
+
+    @GetMapping("/edit/{id}")
+    public String editPost(@PathVariable String id, Model model) {
+        Optional<Article> article = articleService.getById(id);
+        if (article.isPresent()) {
+            model.addAttribute("article", article.get());
+        } else {
+            return throwNotFoundException(id);
+        }
+
+        return "article/create";
+    }
+
+    @GetMapping("/show/{link}")
+    public String getPost(@PathVariable String link, Model model) {
+        Optional<Article> article = articleService.getByLink(link);
+
+        if (article.isPresent()) {
+            model.addAttribute("article", article.get());
+        } else {
+            throwNotFoundException(link);
+        }
+
+        return "article/show";
+    }
+
+
+    @PostMapping
+    public String savePost(Article article, Model model) {
+        if (article.getId() == null || article.getId().length() == 0) {
+            User user = new User();
+            user.setId(article.getTitle());
+            user.setUsername("Khalid Moin");
+            user.setDescription("main user description");
+            article.setAuthor(user);
+        } else {
+            Optional<Article> optionalArticle = articleService.getById(article.getId());
+            if (optionalArticle.isPresent()) {
+                article.setAuthor(optionalArticle.get().getAuthor());
+            }
+        }
+        articleService.save(article);
+
+        return "redirect:/article/show/" + article.getLink();
+    }
+
+
+    @PostMapping("/delete/{id}")
+    public String deletePost(@PathVariable String id, Model model) {
+        articleService.deleteById(id);
+
+        model.addAttribute("message", "Article with id " + id + " deleted successfully!");
+        model.addAttribute("articles", new PageImpl(articleService.getArticles(), Pageable.unpaged(), 0L));
+        return "article/index";
+    }
 
     private Pageable getPageable(Integer page, Integer size) {
         if (page == null || size == null) {
@@ -139,3 +129,4 @@ public class ArticleController {
     }
 
 }
+

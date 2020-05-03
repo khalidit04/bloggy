@@ -17,17 +17,29 @@
 package com.khld.article.service;
 
 import com.khld.article.model.Article;
+import com.khld.article.repo.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ArticleService {
 
     @Autowired
-    private  RestTemplate restTemplate;
+    private RestTemplate restTemplate;
+
+    private final ArticleRepository articleRepository;
+
+    public ArticleService(ArticleRepository articleRepository) {
+        this.articleRepository = articleRepository;
+    }
 
 
 //    public Article save(Article article) {
@@ -35,31 +47,32 @@ public class ArticleService {
 //        return articleRepository.save(article);
 //    }
 
-    public List<Article> getArticles() {
-//        /articles/{q}/{page}/{size}
-        List<Article> article=null;
-        try{
-            article = (List<Article>)restTemplate.getForObject("http://localhost:8090/articles", List.class);
-        }catch (Exception e){
-            System.out.println("&&&&&"+e);
+    public Article save(Article article) {
+        if (article.getId() == null) {
+            article.setId(UUID.randomUUID().toString());
         }
-
-        return article;
+        return articleRepository.save(article);
     }
 
-//    public Optional<Article> getByLink(String link) {
-//        return articleRepository.findByLink(link);
-//    }
-//
-//    public Optional<Article> getById(String id) {
-//        return articleRepository.findById(id);
-//    }
-//
-//    public void deleteById(String id) {
-//        articleRepository.deleteById(id);
-//    }
-//
-//    public Page<Article> search(String q, Pageable pageable) {
-//        return articleRepository.findByTitleContainingAndBodyContaining(q, q, pageable);
-//    }
+    public List<Article> getArticles() {
+        List<Article> articles = new ArrayList<>();
+        articleRepository.findAll().forEach(article -> articles.add(article));
+        return articles;
+    }
+
+    public Optional<Article> getByLink(String link) {
+        return articleRepository.findByLink(link);
+    }
+
+    public Optional<Article> getById(String id) {
+        return articleRepository.findById(id);
+    }
+
+    public void deleteById(String id) {
+        articleRepository.deleteById(id);
+    }
+
+    public Page<Article> search(String q, Pageable pageable) {
+        return articleRepository.findByTitleContainingAndBodyContaining(q, q, pageable);
+    }
 }

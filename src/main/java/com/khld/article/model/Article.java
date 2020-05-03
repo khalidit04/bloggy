@@ -26,7 +26,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
 import java.util.Date;
 
-@Document(indexName = "springboot2blog_article", type = "article")
+@Document(indexName = "bloggy", type = "article")
 @Data
 public class Article implements Serializable {
 

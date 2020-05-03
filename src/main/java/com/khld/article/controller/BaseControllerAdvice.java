@@ -17,23 +17,13 @@
 package com.khld.article.controller;
 
 import com.khld.article.exception.NotFoundException;
-import com.khld.article.model.User;
-import com.khld.article.service.UserService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 @ControllerAdvice
 public class BaseControllerAdvice {
 
-    private final UserService userService;
-
-    public BaseControllerAdvice(UserService userService) {
-        this.userService = userService;
-    }
 
     @ExceptionHandler(NotFoundException.class)
     public String handledNotFoundException(NotFoundException e, Model model) {
@@ -51,11 +41,11 @@ public class BaseControllerAdvice {
         return "common/error";
     }
 
-    @ModelAttribute
-    public void addCommonAttributes(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        if (userDetails != null) {
-            User user = userService.getByUsername(userDetails.getUsername());
-            model.addAttribute("user", user);
-        }
-    }
+//    @ModelAttribute
+//    public void addCommonAttributes(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+//        if (userDetails != null) {
+//            User user = userService.getByUsername(userDetails.getUsername());
+//            model.addAttribute("user", user);
+//        }
+//    }
 }

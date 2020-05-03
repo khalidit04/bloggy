@@ -35,12 +35,12 @@
           <hr>
 
           <!-- Date/Time -->
-          <p>Posted on ${article.createdDate}</p>
+          <p>Posted on ${article.createdDate?string('dd.MM.yyyy HH:mm:ss')}</p>
 
           <p>${article.summary}</p>
 
-          <#if article.author?? && user??>
-            <#if article.author.username == user.username || user.role?contains("ADMIN")>
+          <#if article.author??>
+            <#if article.author.username == "Khalid Moin">
               <form id="form_delete_${article.id}" method="post" action="/article/delete/${article.id}"></form>
               <p><a class="btn btn-success" href="/article/edit/${article.id}">Edit</a> <a href="#" class="btn btn-danger" onclick="$('#form_delete_${article.id}').submit();">Delete</a></p>
             </#if>
