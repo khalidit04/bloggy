@@ -48,7 +48,8 @@ public class ArticleController {
             System.out.println("restul" + articles);
             model.addAttribute("articles", articles);
         } else {
-            model.addAttribute("articles", articleService.search(q, getPageable(page, size)));
+            Page<Article> results= articleService.search(q, getPageable(page, size));
+            model.addAttribute("articles", results);
         }
 
         return "article/index";
